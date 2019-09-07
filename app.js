@@ -20,7 +20,10 @@ const body_parser = require('body-parser');
 app.use(body_parser.json());
 
 // routes
-//app.use('/v1', require('./routes/'));
+app.use('/v1', require('./routes/get_otp'));
+app.use('/v1',require('./routes/user_registration'));
+app.use('/v1',require('./routes/verify_otp'));
+
 
  // catch 404 and forward to error
 // handler
@@ -53,7 +56,7 @@ app.use(function (err, req, res, next) {
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '5000');
+var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
 /**
