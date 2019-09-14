@@ -44,8 +44,6 @@ const user_registrations = async (req, res, next) => {
             how_did_you_hear: req.body.how_did_you_hear,
         }
 
-        const new_user = await knex('public.user_registrations')
-            .where('username', req.body.username)
 
         const data = req.body
 
@@ -69,6 +67,12 @@ const user_registrations = async (req, res, next) => {
             }
         });
 
+        const new_user = await knex('public.user_registration')
+            .where('username', input.username)
+            .select('*');
+
+        console.log(new_user);
+
         if (new_user.length != 0) {
 
             return res.status(400).json({
@@ -84,10 +88,11 @@ const user_registrations = async (req, res, next) => {
 
         } else {
 
+            await save_details_in_db(input);
+
             const files = input.files;
 
             const url = [];
-
 
             for (let index = 0; index < files.length; index++) {
                 const element = files[index];
@@ -111,17 +116,23 @@ const user_registrations = async (req, res, next) => {
                 obj.path = `s3://${s3_path}`;
             }
 
-            input.driver_licence_front_url = url[0].url
-            input.driver_licence_front_path = url[0].path
-            input.driver_licence_back_url = url[1].url
-            input.driver_licence_back_path = url[1].path
+            // input.driver_licence_front_url = url[0].url
+            // input.driver_licence_front_path = url[0].path
+            // input.driver_licence_back_url = url[1].url
+            // input.driver_licence_back_path = url[1].path
 
-            await save_details_in_db(input);
+
+            const add_urls_in_db = await knex('public.user_registration')
+                .where('username', input.username)
+                .update('driver_licence_front_url', url[0].url)
+                .update('driver_licence_front_path', url[0].path)
+                .update('driver_licence_back_url', url[1].url)
+                .update('driver_licence_back_path', url[1].path)
 
 
             const get_token = await generate_token();
 
-            const save_token_db = await knex('public.user_registrations')
+            const save_token_db = await knex('public.user_registration')
                 .update('token', get_token)
                 .where('username', req.body.username)
 
@@ -162,12 +173,14 @@ const save_details_in_db = async (data) => {
 
     delete data.files;
 
-    const result = await knex('public.user_registrations')
+    const result = await knex('public.user_registration')
         .insert(data);
 
     return result;
 
 }
+
+
 const schema = Joi.object({
     username: Joi.string().alphanum().min(3).max(16).required(),
     full_name: Joi.string().min(3).max(40),
