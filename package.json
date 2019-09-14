@@ -1,0 +1,38 @@
+{
+  "name": "user-registration",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dharababariya/user-registration.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dharababariya/user-registration/issues"
+  },
+  "homepage": "https://github.com/dharababariya/user-registration#readme",
+  "dependencies": {
+    "@sendgrid/mail": "^6.4.0",
+    "aws-sdk": "^2.527.0",
+    "body-parser": "^1.19.0",
+    "cookie-parser": "^1.4.4",
+    "express": "^4.17.1",
+    "http": "0.0.0",
+    "joi": "^14.3.1",
+    "jsonwebtoken": "^8.5.1",
+    "knex": "^0.19.1",
+    "moment-timezone": "^0.5.26",
+    "morgan": "^1.9.1",
+    "multer": "^1.4.2",
+    "multer-s3": "^2.9.0",
+    "path": "^0.12.7",
+    "pg": "^7.12.0",
+    "s3fs": "^2.5.0",
+    "twilio": "^3.33.3"
+  }
+}
