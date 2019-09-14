@@ -3,23 +3,35 @@
 const express = require('express');
 const router = express.Router();
 const knex = require('../helper/knex');
-// const Joi = require('joi');
+const jwt = require('jsonwebtoken');
+const my_secret = 'Thanks4help';
 
-const verify_otp = async(req, res, next) => {
 
-    try {   
+//verify otp
+const verify_otp = async (req, res, next) => {
 
-        const verify_otp = await knex("public.generate_otp")
-            .where('contact_no', req.body.mobile_number)
+
+    try {
+
+        const verify_otp = await knex("public.send_otp")
+            .where('username', req.body.username)
             .where('otp', req.body.otp)
             .select('updated_at');
+   
 
-        console.log(verify_otp);    
-        
-        if ( verify_otp.length === 0 ) {
+        if (verify_otp.length === 0) {
 
-            console.log('not verified')
-            res.status(400).send({Status: 'Invalid Otp'})      
+            res.status(400).send({ 
+
+                meta: {
+                status:'0',
+                message: 'Enter Valid Otp'
+            },
+            data: {
+
+            }
+             
+        })
 
         } else {
 
@@ -29,27 +41,71 @@ const verify_otp = async(req, res, next) => {
 
             const current_time = new Date();
 
-            const current_time_in_unix_time = Math.floor(current_time/1000);
-            const otp_generation_time_in_unix_time = Math.floor(time/1000);
+            const current_time_in_unix_time = Math.floor(current_time / 1000);
+            const otp_generation_time_in_unix_time = Math.floor(time / 1000);
 
             const time_diffrenece = current_time_in_unix_time - otp_generation_time_in_unix_time;
 
-            if(time_diffrenece > 900) {
+            if (time_diffrenece > 900) {
 
                 res.status(401).send({
-                    message: 'Your otp is expired'
+
+                    meta: {
+                        status:'1',
+                        message: 'Your otp is expired'
+                    },
+                    data: {
+        
+                    }
+                    
                 })
             }
 
-            res.status(200).send({Status: 'Otp verified successfully'})  
+
+
+            const get_token = await generate_token();
+
+            const save_token_db = await knex('public.send_otp')
+                .update('token', get_token)
+                .where('username', req.body.username)
+
+            res.status(200).send({
+                
+                meta: {
+                    status:'2',
+                    message: 'Otp verified successfully'
+                },
+                data: {
+    
+                }  
+                
+     })
         }
 
-        
+
 
     } catch (error) {
         // console.error(error);
-        return next(error);
+      //  return next(error);
+      return res.status(424).json({
+        meta: {
+            status:'3',
+            message: `Failed ${error.message}`
+        },
+        data: {
+
+        }
+    })
     }
+}
+
+
+const generate_token = async (data) => {
+    const token = jwt.sign({ data }, my_secret, {
+        expiresIn: '24h' // expires in 24 hours
+    });
+
+    return token;
 }
 
 router.post('/api/verify_otp', verify_otp);
