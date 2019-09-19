@@ -17,9 +17,9 @@ const algorithm = 'aes-256-cbc';
 const my_secret = 'Thanks4help';
 
 const s3fsImpl = new S3FS('license-images/images', {
-    secretAccessKey: 'QnzZO4WHHudb1QtjvT1YIS2AX20EgVWcYIWOHq0z',
-    accessKeyId: 'AKIA4T3B3IINQ7NJIRPR',
-    region: 'us-east-2',
+    secretAccessKey: 'process.env.SECRETACCESSKEY',
+    accessKeyId: 'process.env.ACCESSKEYID',
+    region: 'process.env.REGION',
 })
 
 
