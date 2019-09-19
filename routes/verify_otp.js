@@ -4,7 +4,7 @@ const express = require('express');
 const router = express.Router();
 const knex = require('../helper/knex');
 const jwt = require('jsonwebtoken');
-const my_secret = 'Thanks4help';
+const my_secret = 'process.env.MY_SECRET';
 
 
 //verify otp
