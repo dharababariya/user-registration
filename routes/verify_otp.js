@@ -1,10 +1,11 @@
+
 //import  module
 
 const express = require('express');
 const router = express.Router();
 const knex = require('../helper/knex');
 const jwt = require('jsonwebtoken');
-const my_secret = 'process.env.MY_SECRET';
+const my_secret = 'Thanks4help';
 
 
 //verify otp
@@ -13,27 +14,69 @@ const verify_otp = async (req, res, next) => {
 
     try {
 
+        const input = {
+            username: req.body.username,
+            otp: req.body.otp
+        }
+
+        const get_user = await knex('public.send_otp')
+            .where('username', input.username)
+            .select('*')
+
+
+        if (get_user.length === 0) {
+
+            return res.status(400).send({
+                meta: {
+                    status: '0',
+                    message: '⚠️ You are not registered with us'
+                }
+            })
+        }
+
+
         const verify_otp = await knex("public.send_otp")
-            .where('username', req.body.username)
-            .where('otp', req.body.otp)
-            .select('updated_at');
-   
+            .where('username', input.username)
+            .where('otp', input.otp)
+            .select('*')
+
 
         if (verify_otp.length === 0) {
 
-            res.status(400).send({ 
+            return res.status(400).send({
 
                 meta: {
-                status:'0',
-                message: 'Enter Valid Otp'
-            },
-            data: {
+                    status: '1',
+                    message: '⚠️ Enter Valid Otp'
+                },
+                data: {
 
-            }
-             
-        })
+                }
 
-        } else {
+            })
+
+        }
+
+        const [{ verifaction_status: verification_flag }] = await knex('public.send_otp')
+            .where('otp', input.otp)
+            .select('verifaction_status')
+
+        if (verification_flag === true) {
+
+            return res.status(400).send({
+
+                meta: {
+                    status: '2',
+                    message: '⚠️ You are alredy verify this Otp , Please generate new otp'
+                },
+                data: {
+
+                }
+
+            })
+        }
+
+        else {
 
             const opt_generation_time = verify_otp[0];
 
@@ -48,19 +91,18 @@ const verify_otp = async (req, res, next) => {
 
             if (time_diffrenece > 900) {
 
-                res.status(401).send({
+                return res.status(401).send({
 
                     meta: {
-                        status:'1',
-                        message: 'Your otp is expired'
+                        status: '3',
+                        message: '⚠️ Your otp is expired'
                     },
                     data: {
-        
+
                     }
-                    
+
                 })
             }
-
 
 
             const get_token = await generate_token();
@@ -69,33 +111,37 @@ const verify_otp = async (req, res, next) => {
                 .update('token', get_token)
                 .where('username', req.body.username)
 
-            res.status(200).send({
-                
+            const set_registartion_status_true_in_db = await knex('public.send_otp')
+                .update('verifaction_status', true)
+                .where('username', req.body.username)
+
+            return res.status(200).send({
+
                 meta: {
-                    status:'2',
-                    message: 'Otp verified successfully'
+                    status: '4',
+                    message: 'Otp verified successfully ✅️'
                 },
                 data: {
-    
-                }  
-                
-     })
+                    get_token
+                }
+
+            })
         }
 
 
 
     } catch (error) {
         // console.error(error);
-      //  return next(error);
-      return res.status(424).json({
-        meta: {
-            status:'3',
-            message: `Failed ${error.message}`
-        },
-        data: {
+        //  return next(error);
+        return res.status(424).json({
+            meta: {
+                status: '5',
+                message: `⚠️ ${error}`
+            },
+            data: {
 
-        }
-    })
+            }
+        })
     }
 }
 
@@ -111,3 +157,4 @@ const generate_token = async (data) => {
 router.post('/api/verify_otp', verify_otp);
 
 module.exports = router;
+

@@ -1,3 +1,4 @@
+
 const express = require('express');
 const router = express.Router();
 const knex = require('../helper/knex');
@@ -11,15 +12,13 @@ const multer = require('multer');
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 const S3FS = require('s3fs');
-
 const jwt = require('jsonwebtoken');
-const algorithm = 'aes-256-cbc';
 const my_secret = 'Thanks4help';
 
 const s3fsImpl = new S3FS('license-images/images', {
-    secretAccessKey: 'process.env.SECRETACCESSKEY',
-    accessKeyId: 'process.env.ACCESSKEYID',
-    region: 'process.env.REGION',
+    secretAccessKey: 'QnzZO4WHHudb1QtjvT1YIS2AX20EgVWcYIWOHq0z',
+    accessKeyId: 'AKIA4T3B3IINQ7NJIRPR',
+    region: 'us-east-2',
 })
 
 
@@ -44,101 +43,102 @@ const user_registrations = async (req, res, next) => {
             how_did_you_hear: req.body.how_did_you_hear,
         }
 
-        const new_user = await knex('public.user_registrations')
-            .where('username', req.body.username)
 
         const data = req.body
 
 
         Joi.validate(data, schema, async (err, value) => {
 
+            const new_user = await knex('public.user_registrations')
+                .where('username', input.username)
+                .select('*');
+
+
             if (err) {
                 // send a 422 error response if validation fails
                 res.status(422).json({
-
-
                     meta: {
                         status: '0',
-                        message: `Enter ${err.message}`
+                        message: `⚠️ Enter ${err}`
                     },
                     data: {
 
                     }
 
                 });
-            }
-        });
 
-        if (new_user.length != 0) {
 
-            return res.status(400).json({
-                meta: {
-                    status: '1',
-                    message: 'User Alredy Registered'
-                },
-                data: {
+            } else if (new_user.length != 0) {
 
+                return res.status(400).json({
+                    meta: {
+                        status: '1',
+                        message: '⚠️ User Alredy Registered'
+                    },
+                    data: {
+
+                    }
+                })
+
+
+            } else {
+
+
+                const files = input.files;
+
+                await save_details_in_db(input);
+
+                const url = [];
+
+                for (let index = 0; index < files.length; index++) {
+                    const element = files[index];
+
+                    const buffer = element.buffer
+
+                    const file_name = `${Date.now().toString()}.png`;
+
+                    s3ImageObj = await s3fsImpl.writeFile(file_name, buffer);
+
+                    const obj = new Object();
+
+                    url[index] = obj;
+
+                    const s3_url = `https://license-images.s3.us-east-2.amazonaws.com/images/${file_name}`;
+
+                    obj.url = s3_url;
+
+                    const s3_path = await s3fsImpl.getPath(file_name);
+
+                    obj.path = `s3://${s3_path}`;
                 }
-            })
+
+                const add_urls_in_db = await knex('public.user_registrations')
+                    .where('username', input.username)
+                    .update('driver_licence_front_url', url[0].url)
+                    .update('driver_licence_front_path', url[0].path)
+                    .update('driver_licence_back_url', url[1].url)
+                    .update('driver_licence_back_path', url[1].path)
 
 
-        } else {
+                const get_token = await generate_token();
 
-            const files = input.files;
+                const save_token_db = await knex('public.user_registrations')
+                    .update('token', get_token)
+                    .where('username', req.body.username)
 
-            const url = [];
 
+                return res.status(201).json({
+                    meta: {
+                        status: '2',
+                        message: 'User registered successfully ✅️'
+                    },
+                    data: {
 
-            for (let index = 0; index < files.length; index++) {
-                const element = files[index];
+                    }
+                })
 
-                const buffer = element.buffer
-
-                const file_name = `${Date.now().toString()}.png`;
-
-                s3ImageObj = await s3fsImpl.writeFile(file_name, buffer);
-
-                const obj = new Object();
-
-                url[index] = obj;
-
-                const s3_url = `https://license-images.s3.us-east-2.amazonaws.com/images/${file_name}`;
-
-                obj.url = s3_url;
-
-                const s3_path = await s3fsImpl.getPath(file_name);
-
-                obj.path = `s3://${s3_path}`;
             }
-
-            input.driver_licence_front_url = url[0].url
-            input.driver_licence_front_path = url[0].path
-            input.driver_licence_back_url = url[1].url
-            input.driver_licence_back_path = url[1].path
-
-            await save_details_in_db(input);
-
-
-            const get_token = await generate_token();
-
-            const save_token_db = await knex('public.user_registrations')
-                .update('token', get_token)
-                .where('username', req.body.username)
-
-
-            return res.status(201).json({
-                meta: {
-                    status: '2',
-                    message: 'User registered successfully'
-                },
-                data: {
-
-                }
-            })
-
-        }
-
-
+        })
 
 
     } catch (error) {
@@ -148,7 +148,7 @@ const user_registrations = async (req, res, next) => {
         return res.status(424).json({
             meta: {
                 status: '3',
-                message: `Failed ${error.message}`
+                message: `Failed ${error}`
             },
             data: {
 
@@ -168,9 +168,11 @@ const save_details_in_db = async (data) => {
     return result;
 
 }
+
+
 const schema = Joi.object({
-    username: Joi.string().alphanum().min(3).max(16).required(),
-    full_name: Joi.string().min(3).max(40),
+    username: Joi.string().min(3).max(50).required(),
+    full_name: Joi.string().min(3).max(40).required(),
     address: Joi.string().min(3).max(200).required(),
     bio: Joi.string().max(200),
     work_auth_status: Joi.string(),
