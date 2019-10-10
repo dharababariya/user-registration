@@ -16,8 +16,8 @@ const jwt = require('jsonwebtoken');
 const my_secret = 'Thanks4help';
 
 const s3fsImpl = new S3FS('license-img/images', {
-    secretAccessKey: 'cYsoaYuPNcP5Z5Gu93dlj6D8R4qLY8G4rXTc4jkD',
-    accessKeyId: 'AKIAICRY6INC5Z2S75FQ',
+    secretAccessKey: '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',
+    accessKeyId: 'AKIAIJF6QGBSAIAYET4Q',
     region: 'ap-south-1',
 })
 
