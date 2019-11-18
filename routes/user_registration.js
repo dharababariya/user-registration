@@ -15,10 +15,10 @@ const S3FS = require('s3fs');
 const jwt = require('jsonwebtoken');
 const my_secret = 'Thanks4help';
 
-const s3fsImpl = new S3FS('license-img/images', {
-    secretAccessKey: 'LgzydqrkhRLWSif1XBRXmpiKQKaRUvCLoJmYgVP4',
-    accessKeyId: 'AKIAIJF6QGBSAIAYET4Q',
-    region: 'ap-south-1',
+const s3fsImpl = new S3FS('bucketname/foldername', {
+    secretAccessKey: 'your secret key',
+    accessKeyId: 'your accesskey id',
+    region: 'your select region',
 })
 
 
@@ -103,7 +103,7 @@ const user_registrations = async (req, res, next) => {
 
                     url[index] = obj;
 
-                    const s3_url = `https://license-img.s3.ap-south-1.amazonaws.com/images/${file_name}`;
+                    const s3_url = `{your url}/${file_name}`;
 
                     obj.url = s3_url;
 
