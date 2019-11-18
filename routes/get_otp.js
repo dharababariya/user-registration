@@ -5,7 +5,7 @@ const router = express.Router();
 const knex = require('../helper/knex');
 const moment = require('moment-timezone');
 const sgMail = require('@sendgrid/mail');
-sgMail.setApiKey('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');
+sgMail.setApiKey('YOUR-API-KEY');
 
 const Joi = require('joi');
 
@@ -150,8 +150,8 @@ const register_user = async (username) => {
 const send_sms = async (data, otp) => {
 
     try {
-        const accountSid = 'AC634d0da3713aa9e0ec78be79b32c8daa';
-        const authToken = '51a9c2d9150f044203a2260ae14440d3';
+        const accountSid = 'Account id';
+        const authToken = 'Auth Token';
         const client = require('twilio')(accountSid, authToken);
         let resMsg = ''
 
@@ -159,7 +159,7 @@ const send_sms = async (data, otp) => {
 
         await client
             .messages
-            .create({ body: otp, from: '+16029754928', to: mobile_number })
+            .create({ body: otp, from: '+xxxxxxxxxx', to: mobile_number })
             .then(message => {
                 resMsg = message.sid;
                 console.log(`-----------------------------------------`);
@@ -191,8 +191,8 @@ const send_mail = async (data, otp) => {
 
         //    Prepare payload for send email
         const msg = {
-            to: 'dharababariya34@gmail.com',
-            from: 'nmd882@gmail.com',
+            to: 'emaid id',
+            from: 'email',
             subject: 'Sending with Twilio SendGrid is Fun',
             text: 'send otp',
             html: `<strong>Thank You for registered with us. This is your otp ${otp}</strong>`
