@@ -18,7 +18,7 @@
   "homepage": "https://github.com/dharababariya/user-registration#readme",
   "dependencies": {
     "@sendgrid/mail": "^6.4.0",
-    "aws-sdk": "^2.527.0",
+    "aws-sdk": "^2.814.0",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.4",
     "express": "^4.17.1",
